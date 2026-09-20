@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+SpendSense | Personal Finance Tracker
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ================= HERO SECTION ================= -->
+
+<section class="hero">
+
+    <div class="container hero-container">
+
+        <div class="hero-content">
+
+            <span class="hero-badge">
+                ✦ SMART PERSONAL FINANCE
+            </span>
+
+            <h1>
+                Take control of
+                <span>your money.</span>
+            </h1>
+
+            <p>
+                SpendSense helps you track your income,
+                manage expenses, create budgets and
+                understand your spending habits in one place.
+            </p>
+
+
+            <div class="hero-buttons">
+
+                <a href="{{ url_for('register') }}"
+                   class="btn btn-primary">
+                    Get Started
+                </a>
+            </div>
+            </div>
+            
+        <!-- ================= FINANCE PREVIEW ================= -->
+
+        <div class="finance-preview">
+
+           <div class="preview-card">
+
+    <div class="preview-label">
+        ✦ YOUR FINANCIAL SNAPSHOT
+    </div>
+
+    <div class="preview-top">
+
+                    <div>
+
+                        <p>Total Balance</p>
+
+                        <h2>₹24,580</h2>
+
+                    </div>
+
+                    <div class="preview-icon">
+                        ₹
+                    </div>
+
+                </div>
+
+
+                <div class="preview-divider"></div>
+
+
+                <div class="preview-stats">
+
+                    <div>
+
+                        <span>Income</span>
+
+                        <strong class="income-text">
+                            +₹35,000
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>Expenses</span>
+
+                        <strong class="expense-text">
+                            -₹10,420
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="chart-preview">
+
+                    <div class="chart-bar bar-1"></div>
+
+                    <div class="chart-bar bar-2"></div>
+
+                    <div class="chart-bar bar-3"></div>
+
+                    <div class="chart-bar bar-4"></div>
+
+                    <div class="chart-bar bar-5"></div>
+
+                    <div class="chart-bar bar-6"></div>
+
+                    <div class="chart-bar bar-7"></div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ================= FEATURES ================= -->
+
+<section class="features-section">
+
+    <div class="container">
+
+
+        <div class="section-heading">
+
+            <span>
+                EVERYTHING YOU NEED
+            </span>
+
+            <h2>
+                Manage your finances with ease
+            </h2>
+
+            <p>
+                Simple tools to help you understand,
+                organize and improve your financial habits.
+            </p>
+
+        </div>
+
+
+        <div class="features-grid">
+
+
+            <!-- Feature 1 -->
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    ₹
+                </div>
+
+                <h3>
+                    Track Expenses
+                </h3>
+
+                <p>
+                    Record your daily expenses and
+                    organize them into meaningful categories.
+                </p>
+
+            </div>
+
+
+            <!-- Feature 2 -->
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    ↗
+                </div>
+
+                <h3>
+                    Manage Income
+                </h3>
+
+                <p>
+                    Keep track of salary, pocket money,
+                    scholarships and other income sources.
+                </p>
+
+            </div>
+
+
+            <!-- Feature 3 -->
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    ◫
+                </div>
+
+                <h3>
+                    Set Budgets
+                </h3>
+
+                <p>
+                    Set monthly budgets and monitor your
+                    spending before you exceed your limits.
+                </p>
+
+            </div>
+
+
+            <!-- Feature 4 -->
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    ◔
+                </div>
+
+                <h3>
+                    View Reports
+                </h3>
+
+                <p>
+                    Understand your financial habits using
+                    clear reports and visual analytics.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ================= CALL TO ACTION ================= -->
+
+<section class="cta-section">
+
+    <div class="container">
+
+        <div class="cta-box">
+
+            <span>
+                START TODAY
+            </span>
+
+            <h2>
+                Make every rupee count.
+            </h2>
+
+            <p>
+                Start tracking your finances and build
+                better money habits with SpendSense.
+            </p>
+
+            <a href="{{ url_for('register') }}"
+               class="btn btn-primary">
+                Create Free Account
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

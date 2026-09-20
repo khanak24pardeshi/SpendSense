@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}
+Manage Profile | SpendSense
+{% endblock %}
+
+{% block content %}
+
+<section class="auth-section">
+
+    <div class="auth-container auth-container-single">
+
+        <div class="auth-card">
+
+            <div class="auth-card-header">
+
+                <h2>
+                    Manage Profile
+                </h2>
+
+                <p>
+                    Update your SpendSense profile information.
+                </p>
+
+            </div>
+
+
+            <form
+                method="POST"
+                class="auth-form"
+            >
+
+                <div class="form-group">
+
+                    <label for="name">
+                        Full Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value="{{ user['name'] }}"
+                        placeholder="Enter your name"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="email">
+                        Email Address
+                    </label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        value="{{ user['email'] }}"
+                        disabled
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="auth-button"
+                >
+                    Save Changes
+                </button>
+
+            </form>
+
+
+            <div class="auth-footer">
+
+                <a href="{{ url_for('dashboard') }}">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

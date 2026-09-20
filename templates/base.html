@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}SpendSense{% endblock %}
+    </title>
+
+    <!-- SpendSense CSS -->
+    <link rel="stylesheet"
+      href="{{ url_for('static', filename='CSS/style.css') }}">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+</head>
+
+
+<body>
+
+
+    <!-- ================= HEADER ================= -->
+
+    <header class="site-header">
+
+        <div class="container navbar">
+
+
+            <!-- Logo -->
+
+            <a href="{{ url_for('home') }}" class="logo">
+
+    <img src="{{ url_for('static', filename='images/logo1.png') }}"
+         alt="SpendSense Logo"
+         class="logo-image">
+
+</a>
+
+
+            <!-- Center Navigation -->
+
+            <nav class="nav-links">
+
+                <a href="{{ url_for('home') }}">
+    Home
+</a>
+
+<a href="{{ url_for('about') }}">
+    About Us
+</a>
+
+<a href="{{ url_for('contact') }}">
+    Contact Us
+</a>
+
+            </nav>
+
+
+            <!-- Right Navigation -->
+
+            <div class="nav-actions">
+
+    {% if current_user %}
+
+        <!-- PROFILE DROPDOWN -->
+
+        <div class="profile-dropdown">
+
+            <button
+                type="button"
+                class="profile-button"
+                id="profileButton"
+            >
+
+                {% if current_user["profile_picture"] %}
+
+                    <img
+                        src="{{ current_user['profile_picture'] }}"
+                        alt="Profile"
+                        class="profile-avatar"
+                    >
+
+                {% else %}
+
+                    <span class="profile-avatar profile-avatar-letter">
+                        {{ current_user["name"][0]|upper }}
+                    </span>
+
+                {% endif %}
+
+                <span class="profile-name">
+                    {{ current_user["name"] }}
+                </span>
+
+                <i class="fa-solid fa-chevron-down"></i>
+
+            </button>
+
+
+            <!-- DROPDOWN MENU -->
+
+            <div
+                class="profile-menu"
+                id="profileMenu"
+            >
+
+                <div class="profile-menu-header">
+
+                    <strong>
+                        {{ current_user["name"] }}
+                    </strong>
+
+                    <span>
+                        {{ current_user["email"] }}
+                    </span>
+
+                </div>
+
+
+                <div class="profile-menu-divider"></div>
+
+
+                <a href="{{ url_for('dashboard') }}">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    Dashboard
+                </a>
+
+
+                <a href="{{ url_for('manage_profile') }}">
+                    <i class="fa-solid fa-user"></i>
+                    Manage Profile
+                </a>
+                <div class="profile-menu-divider"></div>
+
+
+                <a
+                    href="{{ url_for('logout') }}"
+                    class="profile-logout"
+                >
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    Logout
+                </a>
+
+            </div>
+
+        </div>
+
+
+    {% else %}
+
+        <!-- NOT LOGGED IN -->
+
+        <a
+            href="{{ url_for('login') }}"
+            class="nav-login"
+        >
+            Login
+        </a>
+        <a href="{{ url_for('register') }}"
+            class="nav-signup"
+        >
+            Sign Up
+        </a>
+
+    {% endif %}
+
+</div>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- ================= MAIN CONTENT ================= -->
+
+    <main>
+
+        {% block content %}
+
+        {% endblock %}
+
+    </main>
+
+
+
+   <!-- ================= FOOTER ================= -->
+
+<footer class="site-footer">
+
+    <div class="container footer-content">
+
+        <!-- Brand -->
+        <div class="footer-about">
+
+            <a href="{{ url_for('home') }}" class="footer-logo">
+
+    <img src="{{ url_for('static', filename='images/logo1.png') }}"
+         alt="SpendSense Logo"
+         class="footer-logo-image">
+
+</a>
+
+            <p>
+                A simple and smart way to track your personal finances,
+                expenses and budgets.
+            </p>
+
+        </div>
+
+
+        <!-- Quick Links -->
+        <div class="footer-links">
+
+            <h4>Quick Links</h4>
+
+            <a href="{{ url_for('home') }}">
+    Home
+</a>
+
+<a href="{{ url_for('about') }}">
+    About Us
+</a>
+
+<a href="{{ url_for('contact') }}">
+    Contact Us
+</a>
+
+        </div>
+
+
+        <!-- Features -->
+        <div class="footer-links">
+
+            <h4>Features</h4>
+
+            <a href="#">Expense Tracking</a>
+
+            <a href="#">Budget Management</a>
+
+            <a href="#">Financial Reports</a>
+
+        </div>
+
+    </div>
+
+
+    <!-- Social Media -->
+    <div class="footer-social">
+
+        <a href="#" aria-label="Instagram">
+            <i class="fa-brands fa-instagram"></i>
+        </a>
+
+        <a href="#" aria-label="Twitter">
+            <i class="fa-brands fa-x-twitter"></i>
+        </a>
+
+        <a href="#" aria-label="LinkedIn">
+            <i class="fa-brands fa-linkedin-in"></i>
+        </a>
+
+    </div>
+
+
+    <!-- Bottom -->
+    <div class="footer-bottom">
+
+        <div class="container">
+
+            <p>
+                © 2026 SpendSense. All rights reserved.
+            </p>
+
+        </div>
+
+    </div>
+
+</footer>
+
+<!-- ================= JAVASCRIPT ================= -->
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>

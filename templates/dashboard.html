@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | SpendSense{% endblock %}
+
+{% block content %}
+
+<section class="dashboard-page">
+
+    <div class="dashboard-container">
+
+        <!-- SIDEBAR -->
+        <aside class="dashboard-sidebar">
+
+            <div class="dashboard-brand">
+                SpendSense
+            </div>
+
+            <nav>
+
+                <a href="{{ url_for('dashboard') }}" class="active">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    Dashboard
+                </a>
+
+                <a href="{{ url_for('transactions') }}">
+                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                    Transactions
+                </a>
+
+                <a href="{{ url_for('budgets') }}">
+                    <i class="fa-solid fa-wallet"></i>
+                    Budgets
+                </a>
+
+                <a href="{{ url_for('analytics') }}">
+    <i class="fa-solid fa-chart-line"></i>
+    Analytics
+</a>
+
+                <a href="#">
+                    <i class="fa-solid fa-tags"></i>
+                    Categories
+                </a>
+
+                <a href="#">
+                    <i class="fa-solid fa-gear"></i>
+                    Settings
+                </a>
+
+            </nav>
+
+        </aside>
+
+
+        <!-- MAIN DASHBOARD -->
+        <main class="dashboard-main">
+
+            <!-- HEADER -->
+            <div class="dashboard-header">
+
+                <div>
+
+                    <span class="dashboard-label">
+                        ✦ PERSONAL FINANCE
+                    </span>
+
+                    <h1>Financial Dashboard</h1>
+
+                    <p>
+                        Track your money, expenses and savings in one place.
+                    </p>
+
+                </div>
+
+                <a
+                    href="{{ url_for('add_transaction') }}"
+                    class="dashboard-add-btn"
+                >
+                    + Add Transaction
+                </a>
+
+            </div>
+
+
+            <!-- SUMMARY CARDS -->
+            <div class="summary-cards">
+
+                <!-- BALANCE -->
+                <div class="summary-card balance-card">
+
+                    <div class="summary-icon">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+
+                    <span>Total Balance</span>
+
+                    <h2>
+                        ₹{{ "%.2f"|format(balance) }}
+                    </h2>
+
+                </div>
+
+
+                <!-- INCOME -->
+                <div class="summary-card income-card">
+
+                    <div class="summary-icon">
+                        <i class="fa-solid fa-arrow-trend-up"></i>
+                    </div>
+
+                    <span>Total Income</span>
+
+                    <h2>
+                        ₹{{ "%.2f"|format(income) }}
+                    </h2>
+
+                </div>
+
+
+                <!-- EXPENSE -->
+                <div class="summary-card expense-card">
+
+                    <div class="summary-icon">
+                        <i class="fa-solid fa-arrow-trend-down"></i>
+                    </div>
+
+                    <span>Total Expenses</span>
+
+                    <h2>
+                        ₹{{ "%.2f"|format(expenses) }}
+                    </h2>
+
+                </div>
+
+
+                <!-- SAVINGS -->
+                <div class="summary-card savings-card">
+
+                    <div class="summary-icon">
+                        <i class="fa-solid fa-piggy-bank"></i>
+                    </div>
+
+                    <span>Savings</span>
+
+                    <h2>
+                        ₹{{ "%.2f"|format(balance) }}
+                    </h2>
+
+                    <small>
+                        {{ "%.1f"|format(savings_percentage) }}% of income
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <!-- SPENDING SUMMARY -->
+            <section class="dashboard-section">
+
+                <div class="dashboard-section-header">
+
+                    <div>
+
+                        <span class="dashboard-label">
+                            ✦ SPENDING BREAKDOWN
+                        </span>
+
+                        <h2>Where Your Money Goes</h2>
+
+                        <p>
+                            See how much you're spending in each category.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="spending-summary-card">
+
+                    {% if spending_categories %}
+
+                        {% for category in spending_categories %}
+
+                        <div class="spending-category-row">
+
+                            <div class="spending-category-info">
+
+                                <span class="spending-category-name">
+                                    {{ category["category_name"] }}
+                                </span>
+
+                                <strong>
+                                    ₹{{ "%.2f"|format(category["total"]) }}
+                                </strong>
+
+                            </div>
+
+                            <div class="spending-category-bar">
+
+                                <div
+                                    class="spending-category-fill"
+                                    data-amount="{{ category['total'] }}"
+                                ></div>
+
+                            </div>
+
+                        </div>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <div class="empty-spending">
+
+                            <i class="fa-solid fa-chart-simple"></i>
+
+                            <h3>No spending data yet</h3>
+
+                            <p>
+                                Add some expense transactions to see your
+                                spending breakdown.
+                            </p>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </section>
+
+
+            <!-- DASHBOARD GRID -->
+            <div class="dashboard-grid">
+
+
+                <!-- CASH FLOW -->
+                <div class="dashboard-card">
+
+                    <div class="card-heading">
+
+                        <div>
+
+                            <h3>Cash Flow</h3>
+
+                            <p>
+                                Your income and expenses
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="empty-chart">
+
+                        <i class="fa-solid fa-chart-column"></i>
+
+                        <p>
+                            Your cash flow chart will appear here.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- RECENT TRANSACTIONS -->
+                <div class="dashboard-card">
+
+                    <div class="card-heading">
+
+                        <div>
+
+                            <h3>Recent Transactions</h3>
+
+                            <p>
+                                Your latest activity
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    {% if transactions %}
+
+                        <div class="transaction-list">
+
+                            {% for transaction in transactions %}
+
+                                <div class="transaction-item">
+
+                                    <div>
+
+                                        <strong>
+                                            {{ transaction["description"] or transaction["category_name"] }}
+                                        </strong>
+
+                                        <span>
+                                            {{ transaction["category_name"] }}
+                                        </span>
+
+                                    </div>
+
+
+                                    <strong class="{{ transaction['type'] }}">
+
+                                        {% if transaction["type"] == "income" %}
+
+                                            +₹{{ "%.2f"|format(transaction["amount"]) }}
+
+                                        {% else %}
+
+                                            -₹{{ "%.2f"|format(transaction["amount"]) }}
+
+                                        {% endif %}
+
+                                    </strong>
+
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="empty-transactions">
+
+                            <i class="fa-solid fa-receipt"></i>
+
+                            <p>
+                                No transactions yet.
+                            </p>
+
+                            <small>
+                                Add your first income or expense.
+                            </small>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Transactions | SpendSense{% endblock %}
+
+{% block content %}
+
+<section class="transactions-page">
+
+    <div class="transactions-container">
+
+        <!-- HEADER -->
+
+        <div class="transactions-header">
+
+            <div class="transactions-title-area">
+
+                <a
+                    href="{{ url_for('dashboard') }}"
+                    class="back-dashboard-btn"
+                >
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+
+                <span class="dashboard-label">
+                    ✦ MONEY ACTIVITY
+                </span>
+
+                <h1>Transactions</h1>
+
+                <p>
+                    View and manage all your income and expenses.
+                </p>
+
+            </div>
+
+            <a
+                href="{{ url_for('add_transaction') }}"
+                class="dashboard-add-btn"
+            >
+                + Add Transaction
+            </a>
+
+        </div>
+        <!-- TRANSACTION FILTERS -->
+
+<div class="transaction-filters">
+
+    <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+
+        <input
+            type="text"
+            id="transactionSearch"
+            placeholder="Search transactions..."
+        >
+    </div>
+
+    <select id="transactionTypeFilter">
+        <option value="all">All Transactions</option>
+        <option value="income">Income</option>
+        <option value="expense">Expense</option>
+    </select>
+
+</div>
+        <!-- TRANSACTIONS CARD -->
+
+        <div class="transactions-card">
+
+            {% if transactions %}
+
+            <div class="transactions-table-wrapper">
+
+                <table class="transactions-table">
+
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for transaction in transactions %}
+
+                        <tr>
+
+                            <td>
+                                {{ transaction["date"] }}
+                            </td>
+
+                            <td>
+                                <strong>
+                                    {{ transaction["description"] or "No description" }}
+                                </strong>
+                            </td>
+
+                            <td>
+                                {{ transaction["category_name"] }}
+                            </td>
+
+                            <td>
+
+                                {% if transaction["type"] == "income" %}
+
+                                <span class="transaction-badge income-badge">
+                                    Income
+                                </span>
+
+                                {% else %}
+
+                                <span class="transaction-badge expense-badge">
+                                    Expense
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if transaction["type"] == "income" %}
+
+                                <strong class="amount-income">
+                                    +₹{{ "%.2f"|format(transaction["amount"]) }}
+                                </strong>
+
+                                {% else %}
+
+                                <strong class="amount-expense">
+                                    -₹{{ "%.2f"|format(transaction["amount"]) }}
+                                </strong>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                <div class="transaction-actions">
+
+    <a
+        href="{{ url_for('edit_transaction', transaction_id=transaction['id']) }}"
+        class="edit-btn"
+        title="Edit transaction"
+    >
+        <i class="fa-solid fa-pen"></i>
+    </a>
+
+    <form
+        method="POST"
+        action="{{ url_for('delete_transaction', transaction_id=transaction['id']) }}"
+        class="delete-form"
+        onsubmit="return confirm('Are you sure you want to delete this transaction?');"
+    >
+        <button
+            class="delete-btn"
+            type="submit"
+            title="Delete transaction"
+        >
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    </form>
+
+</div>
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {% else %}
+
+            <div class="no-transactions">
+
+                <i class="fa-solid fa-receipt"></i>
+
+                <h3>No transactions yet</h3>
+
+                <p>
+                    Start tracking your money by adding your first transaction.
+                </p>
+
+                <a
+                    href="{{ url_for('add_transaction') }}"
+                    class="dashboard-add-btn"
+                >
+                    + Add Transaction
+                </a>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
