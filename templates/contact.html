@@ -28,28 +28,7 @@ Contact Us | SpendSense
 </div>
 
 
-<!-- Flash Messages -->
 
-{% with messages = get_flashed_messages() %}
-
-    {% if messages %}
-
-        <div class="contact-flash-message">
-
-            {% for message in messages %}
-
-                <p>
-                    <i class="fa-solid fa-circle-check"></i>
-                    {{ message }}
-                </p>
-
-            {% endfor %}
-
-        </div>
-
-    {% endif %}
-
-{% endwith %}
 
         <div class="contact-grid">
 
