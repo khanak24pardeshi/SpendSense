@@ -1,7 +1,7 @@
 import os
 import sqlite3
-
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from datetime import datetime
+from flask import Flask, render_template, request, redirect, url_for, session, flash, get_flashed_messages
 from dotenv import load_dotenv
 from authlib.integrations.flask_client import OAuth
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -403,6 +403,7 @@ def login():
     return render_template("login.html")
 @app.route("/dashboard")
 def dashboard():
+
     if "user_id" not in session:
         return redirect(url_for("login"))
 
@@ -462,6 +463,44 @@ def dashboard():
         ORDER BY total DESC
     """, (user_id,)).fetchall()
 
+    # Monthly Cash Flow
+    monthly_data = conn.execute("""
+        SELECT
+            substr(date, 1, 7) AS month,
+            SUM(
+                CASE
+                    WHEN type = 'income' THEN amount
+                    ELSE 0
+                END
+            ) AS income,
+            SUM(
+                CASE
+                    WHEN type = 'expense' THEN amount
+                    ELSE 0
+                END
+            ) AS expenses
+        FROM transactions
+        WHERE user_id = ?
+        GROUP BY substr(date, 1, 7)
+        ORDER BY month
+    """, (user_id,)).fetchall()
+
+    # Prepare Cash Flow Chart Data
+    monthly_labels = [
+        datetime.strptime(row["month"], "%Y-%m").strftime("%b %Y")
+        for row in monthly_data
+    ]
+
+    monthly_income = [
+        row["income"] or 0
+        for row in monthly_data
+    ]
+
+    monthly_expenses = [
+        row["expenses"] or 0
+        for row in monthly_data
+    ]
+
     conn.close()
 
     return render_template(
@@ -471,7 +510,10 @@ def dashboard():
         expenses=expenses,
         savings_percentage=savings_percentage,
         transactions=transactions,
-        spending_categories=spending_categories
+        spending_categories=spending_categories,
+        monthly_labels=monthly_labels,
+        monthly_income=monthly_income,
+        monthly_expenses=monthly_expenses
     )
 @app.route("/add-transaction", methods=["GET", "POST"])
 def add_transaction():
@@ -564,9 +606,42 @@ def transactions():
 
     conn.close()
 
+    # GROUP TRANSACTIONS BY MONTH
+    grouped_transactions = []
+
+    for transaction in transactions:
+
+        transaction_date = str(transaction["date"])
+        month_key = transaction_date[:7]
+
+        # Convert YYYY-MM into a readable month name
+        try:
+            month_name = datetime.strptime(
+                month_key, "%Y-%m"
+            ).strftime("%B %Y")
+
+        except ValueError:
+            month_name = month_key
+
+        # Check whether this month already exists
+        if (
+            not grouped_transactions
+            or grouped_transactions[-1]["month_key"] != month_key
+        ):
+            grouped_transactions.append({
+                "month_key": month_key,
+                "month_name": month_name,
+                "transactions": []
+            })
+
+        grouped_transactions[-1]["transactions"].append(
+            transaction
+        )
+
     return render_template(
         "transactions.html",
-        transactions=transactions
+        transactions=transactions,
+        grouped_transactions=grouped_transactions
     )
 # =========================================================
 # DELETE TRANSACTION
@@ -697,13 +772,18 @@ def edit_transaction(transaction_id):
         transaction=transaction,
         categories=categories
     )
+
+
+
 @app.route("/budgets", methods=["GET", "POST"])
 def budgets():
+
     if "user_id" not in session:
         return redirect(url_for("login"))
 
     conn = get_db_connection()
 
+    # FETCH EXPENSE CATEGORIES
     expense_categories = conn.execute("""
         SELECT *
         FROM categories
@@ -711,6 +791,7 @@ def budgets():
         ORDER BY name
     """).fetchall()
 
+    # ADD OR UPDATE BUDGET
     if request.method == "POST":
 
         category_id = request.form.get("category_id")
@@ -718,21 +799,21 @@ def budgets():
         month = request.form.get("month")
 
         if not category_id or not amount or not month:
-            flash("Please fill in all budget fields.")
             conn.close()
+            flash("Please fill in all budget fields.")
             return redirect(url_for("budgets"))
 
         try:
             amount = float(amount)
 
             if amount <= 0:
-                flash("Budget amount must be greater than zero.")
                 conn.close()
+                flash("Budget amount must be greater than zero.")
                 return redirect(url_for("budgets"))
 
         except ValueError:
-            flash("Please enter a valid budget amount.")
             conn.close()
+            flash("Please enter a valid budget amount.")
             return redirect(url_for("budgets"))
 
         existing_budget = conn.execute("""
@@ -748,6 +829,7 @@ def budgets():
         )).fetchone()
 
         if existing_budget:
+
             conn.execute("""
                 UPDATE budgets
                 SET amount = ?
@@ -758,7 +840,9 @@ def budgets():
                 existing_budget["id"],
                 session["user_id"]
             ))
+
         else:
+
             conn.execute("""
                 INSERT INTO budgets
                 (user_id, category_id, amount, month)
@@ -776,39 +860,36 @@ def budgets():
         flash("Budget saved successfully!")
         return redirect(url_for("budgets"))
 
+    # FETCH ALL BUDGETS
     budgets_data = conn.execute("""
         SELECT
             budgets.id,
+            budgets.category_id,
             budgets.amount,
             budgets.month,
             categories.name AS category_name
         FROM budgets
         LEFT JOIN categories
-        ON budgets.category_id = categories.id
+            ON budgets.category_id = categories.id
         WHERE budgets.user_id = ?
         ORDER BY budgets.month DESC, categories.name
-    """, (
-        session["user_id"],
-    )).fetchall()
+    """, (session["user_id"],)).fetchall()
 
     budget_list = []
 
+    # CALCULATE SPENDING FOR EACH BUDGET
     for budget in budgets_data:
 
         spent = conn.execute("""
             SELECT COALESCE(SUM(amount), 0)
             FROM transactions
             WHERE user_id = ?
-            AND category_id = (
-                SELECT category_id
-                FROM budgets
-                WHERE id = ?
-            )
+            AND category_id = ?
             AND type = 'expense'
             AND substr(date, 1, 7) = ?
         """, (
             session["user_id"],
-            budget["id"],
+            budget["category_id"],
             budget["month"]
         )).fetchone()[0]
 
@@ -817,9 +898,7 @@ def budgets():
         if budget["amount"] > 0:
             percentage = (spent / budget["amount"]) * 100
 
-        if percentage > 100:
-            percentage = 100
-
+        progress_percentage = min(percentage, 100)
         remaining = budget["amount"] - spent
 
         budget_list.append({
@@ -829,15 +908,65 @@ def budgets():
             "category_name": budget["category_name"],
             "spent": spent,
             "remaining": remaining,
-            "percentage": percentage
+            "percentage": percentage,
+            "progress_percentage": progress_percentage
         })
 
     conn.close()
 
+        # SEPARATE CURRENT MONTH AND HISTORY
+    current_month = datetime.now().strftime("%Y-%m")
+    current_month_name = datetime.now().strftime("%B %Y")
+
+    current_budgets = [
+        budget for budget in budget_list
+        if budget["month"] == current_month
+    ]
+
+    history_budgets = [
+        budget for budget in budget_list
+        if budget["month"] != current_month
+    ]
+
+    # GROUP HISTORY BUDGETS BY MONTH
+    history_groups_dict = {}
+
+    for budget in history_budgets:
+        month = budget["month"]
+
+        if month not in history_groups_dict:
+            history_groups_dict[month] = []
+
+        history_groups_dict[month].append(budget)
+
+    history_groups = []
+
+    for month, month_budgets in sorted(
+        history_groups_dict.items(),
+        reverse=True
+    ):
+        try:
+            month_name = datetime.strptime(
+                month, "%Y-%m"
+            ).strftime("%B %Y")
+        except ValueError:
+            month_name = month
+
+        history_groups.append({
+            "month": month,
+            "month_name": month_name,
+            "budgets": month_budgets
+        })
+
     return render_template(
         "budgets.html",
         categories=expense_categories,
-        budgets=budget_list
+        budgets=budget_list,
+        current_budgets=current_budgets,
+        history_budgets=history_budgets,
+        history_groups=history_groups,
+        current_month=current_month,
+        current_month_name=current_month_name
     )
 # =========================================================
 # ANALYTICS
@@ -970,6 +1099,128 @@ def analytics():
         total_income=total_income,
         total_expenses=total_expenses
     )
+
+@app.route("/categories", methods=["GET", "POST"])
+def categories():
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    if request.method == "POST":
+
+        action = request.form.get("action")
+
+        # ADD CATEGORY
+        if action == "add":
+
+            category_name = request.form.get("category_name", "").strip()
+            category_type = request.form.get("category_type", "").strip()
+
+            if not category_name:
+                flash("Please enter a category name.", "error")
+
+            elif category_type not in ["income", "expense"]:
+                flash("Please select a valid category type.", "error")
+
+            else:
+                existing = conn.execute("""
+                    SELECT id FROM categories
+                    WHERE LOWER(name) = LOWER(?) AND type = ?
+                """, (category_name, category_type)).fetchone()
+
+                if existing:
+                    flash("Category already exists.", "error")
+                else:
+                    conn.execute("""
+                        INSERT INTO categories (name, type)
+                        VALUES (?, ?)
+                    """, (category_name, category_type))
+
+                    conn.commit()
+                    flash("Category added successfully!", "success")
+
+        # EDIT CATEGORY
+        elif action == "edit":
+
+            category_id = request.form.get("category_id")
+            new_name = request.form.get("category_name", "").strip()
+
+            if not category_id or not new_name:
+                flash("Please provide a valid category name.", "error")
+
+            else:
+                category = conn.execute("""
+                    SELECT id FROM categories WHERE id = ?
+                """, (category_id,)).fetchone()
+
+                if not category:
+                    flash("Category not found.", "error")
+                else:
+                    conn.execute("""
+                        UPDATE categories
+                        SET name = ?
+                        WHERE id = ?
+                    """, (new_name, category_id))
+
+                    conn.commit()
+                    flash("Category updated successfully!", "success")
+
+        # DELETE CATEGORY
+        elif action == "delete":
+
+            category_id = request.form.get("category_id")
+
+            category = conn.execute("""
+                SELECT id, name FROM categories WHERE id = ?
+            """, (category_id,)).fetchone()
+
+            if not category:
+                flash("Category not found.", "error")
+
+            else:
+                used_in_transactions = conn.execute("""
+                    SELECT id FROM transactions
+                    WHERE category_id = ?
+                    LIMIT 1
+                """, (category_id,)).fetchone()
+
+                used_in_budgets = conn.execute("""
+                    SELECT id FROM budgets
+                    WHERE category_id = ?
+                    LIMIT 1
+                """, (category_id,)).fetchone()
+
+                if used_in_transactions or used_in_budgets:
+                    flash(
+                        "This category is already used. It cannot be deleted.",
+                        "error"
+                    )
+                else:
+                    conn.execute("""
+                        DELETE FROM categories WHERE id = ?
+                    """, (category_id,))
+
+                    conn.commit()
+                    flash("Category deleted successfully!", "success")
+
+        conn.close()
+        return redirect(url_for("categories"))
+
+    category_list = conn.execute("""
+        SELECT id, name, type
+        FROM categories
+        ORDER BY type, name
+    """).fetchall()
+
+    conn.close()
+
+    return render_template(
+        "categories.html",
+        category_list=category_list
+    )
+
 @app.route("/delete-budget/<int:budget_id>", methods=["POST"])
 def delete_budget(budget_id):
     if "user_id" not in session:
@@ -1255,6 +1506,76 @@ def forgot_password():
         return redirect(url_for("login"))
 
     return render_template("forgot_password.html")
+
+# =========================================================
+# CHANGE PASSWORD
+# =========================================================
+
+@app.route("/change-password", methods=["GET", "POST"])
+def change_password():
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    user = conn.execute("""
+        SELECT id, password
+        FROM users
+        WHERE id = ?
+    """, (session["user_id"],)).fetchone()
+
+    if user is None:
+        conn.close()
+        session.clear()
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+
+        current_password = request.form.get("current_password", "")
+        new_password = request.form.get("new_password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        if not current_password or not new_password or not confirm_password:
+            flash("Please fill in all fields.", "error")
+
+        elif not check_password_hash(user["password"], current_password):
+            flash("Current password is incorrect.", "error")
+
+        elif len(new_password) < 8:
+            flash("New password must be at least 8 characters.", "error")
+
+        elif new_password != confirm_password:
+            flash("New passwords do not match.", "error")
+
+        elif current_password == new_password:
+            flash("New password must be different from current password.", "error")
+
+        else:
+            hashed_password = generate_password_hash(new_password)
+
+            conn.execute("""
+                UPDATE users
+                SET password = ?
+                WHERE id = ?
+            """, (hashed_password, session["user_id"]))
+
+            conn.commit()
+            conn.close()
+
+            flash("Password changed successfully!", "success")
+            return redirect(url_for("settings"))
+
+        conn.close()
+        return redirect(url_for("change_password"))
+
+    conn.close()
+
+    # Clear old notifications from previous pages
+    get_flashed_messages()
+
+    return render_template("change_password.html")
+
 # =========================================================
 # LOGOUT
 # =========================================================
@@ -1266,6 +1587,34 @@ def logout():
 
     return redirect(
         url_for("login")
+    )
+# =========================================================
+# SETTINGS
+# =========================================================
+
+@app.route("/settings")
+def settings():
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    user = conn.execute("""
+        SELECT id, name, email, profile_picture
+        FROM users
+        WHERE id = ?
+    """, (session["user_id"],)).fetchone()
+
+    conn.close()
+
+    if user is None:
+        session.clear()
+        return redirect(url_for("login"))
+
+    return render_template(
+        "settings.html",
+        user=user
     )
 @app.route("/manage-profile", methods=["GET", "POST"])
 def manage_profile():

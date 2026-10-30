@@ -237,6 +237,10 @@ document.addEventListener("DOMContentLoaded", function () {
     updateCategories();
 
 });
+/* =========================================================
+   TRANSACTION SEARCH AND TYPE FILTER
+   ========================================================= */
+
 document.addEventListener("DOMContentLoaded", function () {
 
     const searchInput =
@@ -247,6 +251,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const rows =
         document.querySelectorAll(".transactions-table tbody tr");
+
+    const monthGroups =
+        document.querySelectorAll(".transaction-month-group");
 
     if (!searchInput || !typeFilter || !rows.length) {
         return;
@@ -260,6 +267,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const selectedType =
             typeFilter.value;
 
+        // Filter individual transaction rows
         rows.forEach(function (row) {
 
             const rowText =
@@ -284,7 +292,25 @@ document.addEventListener("DOMContentLoaded", function () {
                 matchesSearch && matchesType
                     ? ""
                     : "none";
+
         });
+
+        // Hide month groups that have no visible transactions
+        monthGroups.forEach(function (group) {
+
+            const groupRows =
+                group.querySelectorAll(".transactions-table tbody tr");
+
+            const hasVisibleRows =
+                Array.from(groupRows).some(function (row) {
+                    return row.style.display !== "none";
+                });
+
+            group.style.display =
+                hasVisibleRows ? "" : "none";
+
+        });
+
     }
 
     searchInput.addEventListener(

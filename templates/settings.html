@@ -1,0 +1,92 @@
+
+{% extends "base.html" %}
+
+{% block title %}Settings | SpendSense{% endblock %}
+
+{% block content %}
+
+<section class="settings-page">
+
+    <div class="settings-header">
+        <h1>Settings</h1>
+        <p>Manage your account and application preferences.</p>
+    </div>
+
+    <!-- ACCOUNT INFORMATION -->
+    <div class="settings-card">
+
+        <div class="settings-card-icon">👤</div>
+
+        <div class="settings-card-content">
+            <h2>Account Information</h2>
+            <p>View your registered account details.</p>
+
+            <div class="settings-info">
+                <div>
+                    <span>Full Name</span>
+                    <strong>{{ user.name }}</strong>
+                </div>
+
+                <div>
+                    <span>Email Address</span>
+                    <strong>{{ user.email }}</strong>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PROFILE SETTINGS -->
+    <div class="settings-card">
+
+        <div class="settings-card-icon">⚙️</div>
+
+        <div class="settings-card-content">
+            <h2>Profile Settings</h2>
+            <p>Update your personal profile information.</p>
+
+            <a href="{{ url_for('manage_profile') }}"
+               class="settings-action-btn">
+                Manage Profile
+            </a>
+        </div>
+
+    </div>
+
+    <!-- PASSWORD AND SECURITY -->
+    <div class="settings-card">
+
+        <div class="settings-card-icon">🔒</div>
+
+        <div class="settings-card-content">
+            <h2>Password & Security</h2>
+            <p>Change your account password.</p>
+
+            <a href="{{ url_for('change_password') }}"
+               class="settings-action-btn">
+                Reset Password
+            </a>
+        </div>
+
+    </div>
+
+    <!-- LOGOUT -->
+    <div class="settings-card logout-settings-card">
+
+        <div class="settings-card-icon">🚪</div>
+
+        <div class="settings-card-content">
+            <h2>Logout</h2>
+            <p>Sign out of your SpendSense account.</p>
+
+            <a href="{{ url_for('logout') }}"
+               class="settings-logout-btn">
+                Logout
+            </a>
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

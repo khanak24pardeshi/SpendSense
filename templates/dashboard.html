@@ -21,7 +21,6 @@
                     <i class="fa-solid fa-chart-pie"></i>
                     Dashboard
                 </a>
-
                 <a href="{{ url_for('transactions') }}">
                     <i class="fa-solid fa-arrow-right-arrow-left"></i>
                     Transactions
@@ -37,14 +36,13 @@
     Analytics
 </a>
 
-                <a href="#">
-                    <i class="fa-solid fa-tags"></i>
-                    Categories
-                </a>
-
-                <a href="#">
+               <a href="{{ url_for('categories') }}">
+    <i class="fa-solid fa-tags"></i>
+    <span>Categories</span>
+</a>
+                <a href="{{ url_for('settings')}}">
                     <i class="fa-solid fa-gear"></i>
-                    Settings
+                   <span> Settings</span>
                 </a>
 
             </nav>
@@ -154,84 +152,6 @@
 
             </div>
 
-
-            <!-- SPENDING SUMMARY -->
-            <section class="dashboard-section">
-
-                <div class="dashboard-section-header">
-
-                    <div>
-
-                        <span class="dashboard-label">
-                            ✦ SPENDING BREAKDOWN
-                        </span>
-
-                        <h2>Where Your Money Goes</h2>
-
-                        <p>
-                            See how much you're spending in each category.
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <div class="spending-summary-card">
-
-                    {% if spending_categories %}
-
-                        {% for category in spending_categories %}
-
-                        <div class="spending-category-row">
-
-                            <div class="spending-category-info">
-
-                                <span class="spending-category-name">
-                                    {{ category["category_name"] }}
-                                </span>
-
-                                <strong>
-                                    ₹{{ "%.2f"|format(category["total"]) }}
-                                </strong>
-
-                            </div>
-
-                            <div class="spending-category-bar">
-
-                                <div
-                                    class="spending-category-fill"
-                                    data-amount="{{ category['total'] }}"
-                                ></div>
-
-                            </div>
-
-                        </div>
-
-                        {% endfor %}
-
-                    {% else %}
-
-                        <div class="empty-spending">
-
-                            <i class="fa-solid fa-chart-simple"></i>
-
-                            <h3>No spending data yet</h3>
-
-                            <p>
-                                Add some expense transactions to see your
-                                spending breakdown.
-                            </p>
-
-                        </div>
-
-                    {% endif %}
-
-                </div>
-
-            </section>
-
-
             <!-- DASHBOARD GRID -->
             <div class="dashboard-grid">
 
@@ -254,15 +174,14 @@
                     </div>
 
 
-                    <div class="empty-chart">
-
-                        <i class="fa-solid fa-chart-column"></i>
-
-                        <p>
-                            Your cash flow chart will appear here.
-                        </p>
-
-                    </div>
+                    <div class="dashboard-cashflow-chart">
+    <canvas
+        id="dashboardCashFlowChart"
+        data-labels='{{ monthly_labels | tojson }}'
+        data-income='{{ monthly_income | tojson }}'
+        data-expenses='{{ monthly_expenses | tojson }}'>
+    </canvas>
+</div>
 
                 </div>
 
@@ -353,5 +272,46 @@
     </div>
 
 </section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const cashFlowCanvas = document.getElementById("dashboardCashFlowChart");
 
+    if (cashFlowCanvas) {
+
+        const monthlyLabels = JSON.parse(cashFlowCanvas.dataset.labels);
+        const monthlyIncome = JSON.parse(cashFlowCanvas.dataset.income);
+        const monthlyExpenses = JSON.parse(cashFlowCanvas.dataset.expenses);
+
+        new Chart(cashFlowCanvas, {
+            type: "bar",
+            data: {
+                labels: monthlyLabels,
+                datasets: [
+                    {
+                        label: "Income",
+                        data: monthlyIncome
+                    },
+                    {
+                        label: "Expenses",
+                        data: monthlyExpenses
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: "bottom"
+                    }
+                }
+            }
+        });
+    }
+</script>
 {% endblock %}

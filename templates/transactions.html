@@ -61,13 +61,46 @@
         <option value="income">Income</option>
         <option value="expense">Expense</option>
     </select>
+</div>  
+<!-- TRANSACTIONS CARD -->
+<div class="transactions-card">
 
-</div>
-        <!-- TRANSACTIONS CARD -->
+    {% if transactions %}
 
-        <div class="transactions-card">
+        {% for group in grouped_transactions %}
 
-            {% if transactions %}
+        <details
+            class="transaction-month-group"
+            data-default-open="{{ 'true' if loop.first else 'false' }}"
+            {% if loop.first %}open{% endif %}
+        >
+
+            <!-- CLICKABLE MONTH HEADING -->
+
+            <summary class="transaction-month-heading">
+
+                <div class="month-heading-left">
+
+                    <i class="fa-regular fa-calendar"></i>
+
+                    <h2>{{ group.month_name }}</h2>
+
+                    <span class="month-transaction-count">
+                        {{ group.transactions|length }}
+                        {% if group.transactions|length == 1 %}
+                            Transaction
+                        {% else %}
+                            Transactions
+                        {% endif %}
+                    </span>
+
+                </div>
+
+                <i class="fa-solid fa-chevron-down month-chevron"></i>
+
+            </summary>
+
+            <!-- MONTH TRANSACTIONS -->
 
             <div class="transactions-table-wrapper">
 
@@ -86,13 +119,11 @@
 
                     <tbody>
 
-                        {% for transaction in transactions %}
+                        {% for transaction in group.transactions %}
 
                         <tr>
 
-                            <td>
-                                {{ transaction["date"] }}
-                            </td>
+                            <td>{{ transaction["date"] }}</td>
 
                             <td>
                                 <strong>
@@ -101,22 +132,22 @@
                             </td>
 
                             <td>
-                                {{ transaction["category_name"] }}
+                                {{ transaction["category_name"] or "Uncategorized" }}
                             </td>
 
                             <td>
 
                                 {% if transaction["type"] == "income" %}
 
-                                <span class="transaction-badge income-badge">
-                                    Income
-                                </span>
+                                    <span class="transaction-badge income-badge">
+                                        Income
+                                    </span>
 
                                 {% else %}
 
-                                <span class="transaction-badge expense-badge">
-                                    Expense
-                                </span>
+                                    <span class="transaction-badge expense-badge">
+                                        Expense
+                                    </span>
 
                                 {% endif %}
 
@@ -126,15 +157,15 @@
 
                                 {% if transaction["type"] == "income" %}
 
-                                <strong class="amount-income">
-                                    +₹{{ "%.2f"|format(transaction["amount"]) }}
-                                </strong>
+                                    <strong class="amount-income">
+                                        +₹{{ "%.2f"|format(transaction["amount"]) }}
+                                    </strong>
 
                                 {% else %}
 
-                                <strong class="amount-expense">
-                                    -₹{{ "%.2f"|format(transaction["amount"]) }}
-                                </strong>
+                                    <strong class="amount-expense">
+                                        -₹{{ "%.2f"|format(transaction["amount"]) }}
+                                    </strong>
 
                                 {% endif %}
 
@@ -144,30 +175,31 @@
 
                                 <div class="transaction-actions">
 
-    <a
-        href="{{ url_for('edit_transaction', transaction_id=transaction['id']) }}"
-        class="edit-btn"
-        title="Edit transaction"
-    >
-        <i class="fa-solid fa-pen"></i>
-    </a>
+                                    <a
+                                        href="{{ url_for('edit_transaction', transaction_id=transaction['id']) }}"
+                                        class="edit-btn"
+                                        title="Edit transaction"
+                                    >
+                                        <i class="fa-solid fa-pen"></i>
+                                    </a>
 
-    <form
-        method="POST"
-        action="{{ url_for('delete_transaction', transaction_id=transaction['id']) }}"
-        class="delete-form"
-        onsubmit="return confirm('Are you sure you want to delete this transaction?');"
-    >
-        <button
-            class="delete-btn"
-            type="submit"
-            title="Delete transaction"
-        >
-            <i class="fa-solid fa-trash"></i>
-        </button>
-    </form>
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for('delete_transaction', transaction_id=transaction['id']) }}"
+                                        class="delete-form"
+                                        onsubmit="return confirm('Are you sure you want to delete this transaction?');"
+                                    >
+                                        <button
+                                            class="delete-btn"
+                                            type="submit"
+                                            title="Delete transaction"
+                                        >
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
 
-</div>
+                                </div>
+
                             </td>
 
                         </tr>
@@ -180,28 +212,36 @@
 
             </div>
 
-            {% else %}
+        </details>
 
-            <div class="no-transactions">
+        {% endfor %}
 
-                <i class="fa-solid fa-receipt"></i>
+    {% else %}
 
-                <h3>No transactions yet</h3>
+        <div class="no-transactions">
 
-                <p>
-                    Start tracking your money by adding your first transaction.
-                </p>
+            <i class="fa-solid fa-receipt"></i>
 
-                <a
-                    href="{{ url_for('add_transaction') }}"
-                    class="dashboard-add-btn"
-                >
-                    + Add Transaction
-                </a>
+            <h3>No transactions yet</h3>
 
-            </div>
+            <p>
+                Start tracking your money by adding your first transaction.
+            </p>
 
-            {% endif %}
+            <a
+                href="{{ url_for('add_transaction') }}"
+                class="dashboard-add-btn"
+            >
+                + Add Transaction
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+</div>
 
         </div>
 
